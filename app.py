@@ -1,5 +1,6 @@
 import streamlit as st
 from file_reader import read_file
+from dropbox_reader import list_dropbox_files_and_folders, download_dropbox_file
 from langflow_api import run_flow, extract_scores
 
 # Streamlit app
@@ -8,29 +9,65 @@ from langflow_api import run_flow, extract_scores
 scoreboard = []
 
 st.image("static/ascii-art.png")
-uploaded_files = st.file_uploader("Choose a file", type=["docx", "pdf", "txt", "md"], accept_multiple_files=True)
-for uploaded_file in uploaded_files:
-    if uploaded_file is not None:
-        file_type = uploaded_file.name.split('.')[-1]
+
+# Option to choose file source
+file_source = st.radio("Choose file source", ("Local", "Dropbox"))
+
+if file_source == "Local":
+    uploaded_files = st.file_uploader("Choose a file", type=["docx", "pdf", "txt", "md"], accept_multiple_files=True)
+    for uploaded_file in uploaded_files:
+        if uploaded_file is not None:
+            file_type = uploaded_file.name.split('.')[-1]
+            
+            with st.spinner(f"Reading {uploaded_file.name}..."):
+                content = read_file(uploaded_file, file_type)
+                response = run_flow(content)
+            
+            # Extract and display scores
+            final_score, score_detail = extract_scores(response)
+            
+            # Add to scoreboard
+            scoreboard.append((uploaded_file.name, final_score))
+            
+            # Display file name and page title as section headers with color coding
+            st.markdown(f"<h2 style='color:#00ffff;'>File: {uploaded_file.name}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
+            
+            # Display Score Detail
+            st.markdown(f"<h3 style='color:#ff00ff;'>Score Detail</h3>", unsafe_allow_html=True)
+            for key, value in score_detail.items():
+                st.markdown(f"**{key}**: {value}")
+
+elif file_source == "Dropbox":
+    folder_path = '/rag++ hack night - build log submissions'  # Specific folder
+    dropbox_files, dropbox_folders = list_dropbox_files_and_folders(folder_path)
+    
+    if dropbox_files:
+        selected_files = st.multiselect("Choose files from Dropbox", dropbox_files)
         
-        with st.spinner(f"Reading {uploaded_file.name}..."):
-            content = read_file(uploaded_file, file_type)
-            response = run_flow(content)
-        
-        # Extract and display scores
-        final_score, score_detail = extract_scores(response)
-        
-        # Add to scoreboard
-        scoreboard.append((uploaded_file.name, final_score))
-        
-        # Display file name and page title as section headers with color coding
-        st.markdown(f"<h2 style='color:#00ffff;'>File: {uploaded_file.name}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
-        
-        # Display Score Detail
-        st.markdown(f"<h3 style='color:#ff00ff;'>Score Detail</h3>", unsafe_allow_html=True)
-        for key, value in score_detail.items():
-            st.markdown(f"**{key}**: {value}")
+        for file_name in selected_files:
+            file_content = download_dropbox_file(file_name)
+            if file_content:
+                file_type = file_name.split('.')[-1]
+                
+                with st.spinner(f"Reading {file_name}..."):
+                    content = read_file(file_content, file_type)
+                    response = run_flow(content)
+                
+                # Extract and display scores
+                final_score, score_detail = extract_scores(response)
+                
+                # Add to scoreboard
+                scoreboard.append((file_name, final_score))
+                
+                # Display file name and page title as section headers with color coding
+                st.markdown(f"<h2 style='color:#00ffff;'>File: {file_name}</h2>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
+                
+                # Display Score Detail
+                st.markdown(f"<h3 style='color:#ff00ff;'>Score Detail</h3>", unsafe_allow_html=True)
+                for key, value in score_detail.items():
+                    st.markdown(f"**{key}**: {value}")
 
 # Sort scoreboard by final score in descending order
 def get_score(score):
