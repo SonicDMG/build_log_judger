@@ -7,6 +7,7 @@ from langflow_api import run_flow, extract_scores
 # List to store file names and final scores
 scoreboard = []
 
+st.image("static/ascii-art.png")
 uploaded_files = st.file_uploader("Choose a file", type=["docx", "pdf", "txt", "md"], accept_multiple_files=True)
 for uploaded_file in uploaded_files:
     if uploaded_file is not None:
@@ -33,6 +34,8 @@ for uploaded_file in uploaded_files:
 
 # Sort scoreboard by final score in descending order
 def get_score(score):
+    if isinstance(score, int):
+        return score
     try:
         return int(score.split('/')[0])
     except ValueError:

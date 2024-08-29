@@ -1,5 +1,6 @@
 import docx
 import fitz  # PyMuPDF
+import re
 
 def read_docx(file):
     doc = docx.Document(file)
@@ -17,10 +18,17 @@ def read_pdf(file):
     return '\n'.join(full_text)
 
 def read_txt(file):
-    return file.read().decode("utf-8")
+    content = file.read().decode("utf-8")
+    # Remove image links (assuming they are URLs)
+    content = re.sub(r'http[s]?://\S+\.(?:jpg|jpeg|png|gif)', '', content)
+    return content
 
 def read_md(file):
-    return file.read().decode("utf-8")
+    content = file.read().decode("utf-8")
+    # Remove Markdown image syntax ![alt text](image_url) and base64-encoded images
+    content = re.sub(r'!\[.*?\]\(.*?\)', '', content)
+    content = re.sub(r'\[.*?\]:\s*<data:image\/.*?;base64,.*?>', '', content)
+    return content
 
 def read_file(file, file_type):
     if file_type == "docx":
