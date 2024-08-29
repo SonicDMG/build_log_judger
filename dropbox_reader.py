@@ -54,7 +54,7 @@ def list_dropbox_files_and_folders(folder_path='/rag++ hack night - build log su
 def download_dropbox_file(file_path):
     """Download a file from Dropbox."""
     try:
-        res = dbx.files_download(file_path)
+        metadata, res = dbx.files_download(file_path)
         return BytesIO(res.content)
     except dropbox.exceptions.ApiError as err:
         logger.error("Failed to download file: %s", err)
