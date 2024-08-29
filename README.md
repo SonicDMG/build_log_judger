@@ -29,7 +29,7 @@ Build Log Judge is a Generateive AI application using Streamlit.io that allows u
 
 3. **Install dependencies**:
     ```sh
-    pip install streamlit python-docx pymupdf python-dotenv
+    pip install streamlit python-docx pymupdf python-dotenv coloredlogs
     ```
 
 ## Usage

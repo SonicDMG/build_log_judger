@@ -1,7 +1,13 @@
+import logging
 import streamlit as st
+import coloredlogs
 from file_reader import read_file
 from dropbox_reader import list_dropbox_files_and_folders, download_dropbox_file
 from langflow_api import run_flow, extract_scores
+
+# Configure logger
+logger = logging.getLogger(__name__)
+coloredlogs.install(level='DEBUG', logger=logger)
 
 # Streamlit app
 
@@ -34,7 +40,7 @@ if file_source == "Local":
             st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
             
             # Display Score Detail
-            st.markdown(f"<h3 style='color:#ff00ff;'>Score Detail</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color:#ff00ff;'>Score Detail</h3>", unsafe_allow_html=True)
             for key, value in score_detail.items():
                 st.markdown(f"**{key}**: {value}")
 
@@ -65,7 +71,7 @@ elif file_source == "Dropbox":
                 st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
                 
                 # Display Score Detail
-                st.markdown(f"<h3 style='color:#ff00ff;'>Score Detail</h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='color:#ff00ff;'>Score Detail</h3>", unsafe_allow_html=True)
                 for key, value in score_detail.items():
                     st.markdown(f"**{key}**: {value}")
 
