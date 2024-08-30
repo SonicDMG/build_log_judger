@@ -1,6 +1,8 @@
 import requests
 import json
 import os
+import logging
+import coloredlogs
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -12,7 +14,20 @@ FLOW_ID = os.getenv("FLOW_ID")
 APPLICATION_TOKEN = os.getenv("APPLICATION_TOKEN")
 ENDPOINT = os.getenv("ENDPOINT")
 
+# Configure logger
+logger = logging.getLogger(__name__)
+coloredlogs.install(level='DEBUG', logger=logger)
+
 def run_flow(message: str) -> dict:
+    """
+    Run the flow with the given message and return the judge output.
+
+    Args:
+        message (str): The input message to be processed by the flow.
+
+    Returns:
+        dict: The judge output component from the flow response.
+    """
     if LANGFLOW_ID:
         api_url = f"{BASE_API_URL}/lf/{LANGFLOW_ID}/api/v1/run/{ENDPOINT or FLOW_ID}"
     else:
@@ -28,11 +43,16 @@ def run_flow(message: str) -> dict:
         headers = None
     
     # Log the API call
-    print("API call made to:", api_url)
+    logger.info("API call made to: %s", api_url)
     
-    response = requests.post(api_url, json=payload, headers=headers, timeout=30)
-    response_json = response.json()
-    
+    try:
+        response = requests.post(api_url, json=payload, headers=headers, timeout=30)
+        response_json = response.json()
+    except requests.exceptions.JSONDecodeError as e:
+        logger.error("JSONDecodeError: %s", e)
+        logger.debug("Response text: %s", response.text)  # Print the response text for debugging
+        response_json = {}
+
     # Initialize default values
     judge_output = {
         'component_display_name': 'N/A',
@@ -55,12 +75,20 @@ def run_flow(message: str) -> dict:
             break
     
     # Log the extraction of "Judge Output"
-    print("Judge Output component extracted")
+    logger.info("Judge Output component extracted")
     
     return judge_output
 
 def extract_scores(judge_output):
-    # Extract scores from the "Judge Output" component
+    """
+    Extract scores from the "Judge Output" component.
+
+    Args:
+        judge_output (dict): The judge output component from the flow response.
+
+    Returns:
+        tuple: A tuple containing the final score and score detail.
+    """
     results = judge_output.get('results', {}).get('message', {}).get('text', 'N/A')
     try:
         results_json = json.loads(results)
