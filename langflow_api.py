@@ -46,7 +46,7 @@ def run_flow(message: str) -> dict:
     logger.info("API call made to: %s", api_url)
     
     try:
-        response = requests.post(api_url, json=payload, headers=headers, timeout=30)
+        response = requests.post(api_url, json=payload, headers=headers, timeout=90)
         response_json = response.json()
     except requests.exceptions.JSONDecodeError as e:
         logger.error("JSONDecodeError: %s", e)
@@ -73,7 +73,7 @@ def run_flow(message: str) -> dict:
         if component_display_name == "Judge Output":
             judge_output = output
             break
-    
+
     # Log the extraction of "Judge Output"
     logger.info("Judge Output component extracted")
     

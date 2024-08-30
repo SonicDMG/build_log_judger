@@ -112,20 +112,21 @@ if file_source == "Local":
 
 elif file_source == "Dropbox":
     FOLDER_PATH = '/rag++ hack night - build log submissions'  # Specific folder
-    dropbox_files, dropbox_folders = list_dropbox_files_and_folders(FOLDER_PATH)
+    file_map, dropbox_folders = list_dropbox_files_and_folders(FOLDER_PATH)
 
-    if dropbox_files:
-        selected_files = st.multiselect("Choose files from Dropbox", dropbox_files)
+    if file_map:
+        file_names = list(file_map.keys())
+        selected_files = st.multiselect("Choose files from Dropbox", file_names)
 
         if selected_files:
             total_files = len(selected_files)
-            #progress_bar = st.sidebar.progress(0)
             for i, file_name in enumerate(selected_files):
-                file_content = download_dropbox_file(file_name)
+                file_path = file_map[file_name]
+                file_content = download_dropbox_file(file_path)
                 if file_content:
                     file_type = file_name.split('.')[-1]
 
-                    with st.spinner(f"Reading {os.path.basename(file_name)}..."):
+                    with st.spinner(f"Reading {file_name}..."):
                         content = read_file(file_content, file_type)
                         response = run_flow(content)
 
@@ -133,10 +134,10 @@ elif file_source == "Dropbox":
                     final_score, score_detail = extract_scores(response)
 
                     # Add to scoreboard
-                    scoreboard.append((os.path.basename(file_name), final_score))
+                    scoreboard.append((file_name, final_score))
 
                     # Display file name and page title as section headers with color coding
-                    st.markdown(f"<h2 id='{os.path.basename(file_name)}' style='color:#00ffff;'>File: {os.path.basename(file_name)}</h2>", unsafe_allow_html=True)
+                    st.markdown(f"<h2 id='{file_name}' style='color:#00ffff;'>File: {file_name}</h2>", unsafe_allow_html=True)
                     st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
 
                     # Display Score Detail

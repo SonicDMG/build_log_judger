@@ -1,26 +1,3 @@
-"""
-This script provides functionality to interact with Dropbox using the Dropbox API.
-
-It includes the following features:
-1. Authenticates with Dropbox using an access token loaded from environment variables.
-2. Lists all files and folders in a specified Dropbox folder recursively.
-3. Downloads a specified file from Dropbox.
-
-Uses the `dropbox` library to interact with the Dropbox API and `coloredlogs` for enhanced logging.
-
-Functions:
-- `list_dropbox_files_and_folders(folder_path)`: 
-    Lists all files and folders in the specified Dropbox folder recursively.
-- `download_dropbox_file(file_path)`: 
-    Downloads a file from Dropbox.
-
-Environment Variables:
-- `DROPBOX_ACCESS_TOKEN`: The access token for authenticating with Dropbox.
-
-Example usage:
-    files, folders = list_dropbox_files_and_folders('/path/to/folder')
-    file_content = download_dropbox_file('/path/to/file')
-"""
 import os
 import logging
 from io import BytesIO
@@ -69,7 +46,10 @@ def list_dropbox_files_and_folders(folder_path='/rag++ hack night - build log su
             files.extend(sub_files)
             folders.extend(sub_folders)
 
-        return files, folders
+        # Create a dictionary mapping file names to their full paths
+        file_map = {os.path.basename(file): file for file in files}
+
+        return file_map, folders
     except dropbox.exceptions.ApiError as err:
         logger.error("Failed to list files and folders: %s", err)
         raise
