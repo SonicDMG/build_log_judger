@@ -162,9 +162,9 @@ with st.sidebar:
     st.title("You will be judged!")
 
     if ALL_DOCUMENTS_PROCESSED:
-        st.image("static/cyberpunk_judge_updated.png", width=500)
+        st.image("static/cyberpunk_judge_pointing.webp", width=500)
     else:
-        st.image("static/cyberpunk_judge.png", width=500)
+        st.image("static/cyberpunk_judge.webp", width=500)
     st.caption("Powered by DataStax Langflow and Streamlit.io")
 
     display_scoreboard(scoreboard)
