@@ -1,7 +1,7 @@
 # Build Log Judge
 
 ### You will be Judged!
-![judge image](static/cyberpunk_judge.png)
+![judge image](static/cyberpunk_judge.webp)
 
 Build Log Judge is a Generateive AI application using Streamlit.io that allows users to upload various types of files (docx, pdf, txt, md) and get a final score based on the content and quality of the files.
 
