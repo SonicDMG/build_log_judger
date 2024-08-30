@@ -1,20 +1,25 @@
+import os
 import logging
 import streamlit as st
 import coloredlogs
 from file_reader import read_file
 from dropbox_reader import list_dropbox_files_and_folders, download_dropbox_file
 from langflow_api import run_flow, extract_scores
+from scoreboard import display_scoreboard
 
 # Configure logger
 logger = logging.getLogger(__name__)
 coloredlogs.install(level='DEBUG', logger=logger)
+
+# Set Streamlit page configuration
+st.set_page_config(layout="wide")
 
 # Streamlit app
 
 # List to store file names and final scores
 scoreboard = []
 
-st.image("static/ascii-art.png")
+st.image("static/ascii-art.png", width=300)
 
 # Option to choose file source
 file_source = st.radio("Choose file source", ("Local", "Dropbox"))
@@ -36,7 +41,7 @@ if file_source == "Local":
             scoreboard.append((uploaded_file.name, final_score))
             
             # Display file name and page title as section headers with color coding
-            st.markdown(f"<h2 style='color:#00ffff;'>File: {uploaded_file.name}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h2 id='{uploaded_file.name}' style='color:#00ffff;'>File: {uploaded_file.name}</h2>", unsafe_allow_html=True)
             st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
             
             # Display Score Detail
@@ -56,7 +61,7 @@ elif file_source == "Dropbox":
             if file_content:
                 file_type = file_name.split('.')[-1]
                 
-                with st.spinner(f"Reading {file_name}..."):
+                with st.spinner(f"Reading {os.path.basename(file_name)}..."):
                     content = read_file(file_content, file_type)
                     response = run_flow(content)
                 
@@ -64,10 +69,10 @@ elif file_source == "Dropbox":
                 final_score, score_detail = extract_scores(response)
                 
                 # Add to scoreboard
-                scoreboard.append((file_name, final_score))
+                scoreboard.append((os.path.basename(file_name), final_score))
                 
                 # Display file name and page title as section headers with color coding
-                st.markdown(f"<h2 style='color:#00ffff;'>File: {file_name}</h2>", unsafe_allow_html=True)
+                st.markdown(f"<h2 id='{os.path.basename(file_name)}' style='color:#00ffff;'>File: {os.path.basename(file_name)}</h2>", unsafe_allow_html=True)
                 st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
                 
                 # Display Score Detail
@@ -92,7 +97,7 @@ with st.sidebar:
     st.title("You will be judged!")
     st.image("static/cyberpunk_judge.png")
     st.caption("Powered by DataStax Langflow and Streamlit.io")
-    st.title("Scoreboard")
+    #st.title("Scoreboard")
 
-    for file_name, final_score in scoreboard:
-        st.sidebar.markdown(f"**{file_name}**: {final_score}")
+    # Use the display_scoreboard function from scoreboard.py
+    display_scoreboard(scoreboard)
