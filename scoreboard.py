@@ -1,6 +1,31 @@
+"""
+This script defines a function to display a scoreboard using Streamlit.
+
+The `display_scoreboard` function takes a list of tuples containing file names and scores,
+and displays them in a styled HTML table within a Streamlit app. The table includes columns
+for rank, file name, and score. The file names are displayed as clickable links that navigate
+to the corresponding section in the app.
+
+The script uses custom CSS to style the table and its elements, ensuring a visually appealing
+presentation of the scoreboard.
+
+Example usage:
+    scoreboard = [
+        ("file1.txt", "85/100"),
+        ("file2.pdf", "90/100"),
+        ("file3.docx", "75/100")
+    ]
+    display_scoreboard(scoreboard)
+"""
 import streamlit as st
 
 def display_scoreboard(scoreboard):
+    """
+    Display the scoreboard.
+
+    Args:
+        scoreboard (list): List of tuples containing file names and scores.
+    """
     # Add a table-like structure for the scoreboard
     st.markdown("""
     <style>

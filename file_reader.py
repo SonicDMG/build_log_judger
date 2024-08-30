@@ -1,3 +1,31 @@
+"""
+This script provides functions to read the content of various file types.
+
+The supported file types are:
+1. DOCX (Microsoft Word)
+2. PDF (Portable Document Format)
+3. TXT (Plain Text)
+4. MD (Markdown)
+
+The script uses the following libraries:
+- `docx` for reading DOCX files.
+- `fitz` (PyMuPDF) for reading PDF files.
+- `re` for regular expression operations.
+- `coloredlogs` for enhanced logging.
+
+Functions:
+- `read_file(file, file_type)`: Reads the content of a file based on its type.
+- `read_docx(file)`: Reads the content of a DOCX file.
+- `read_pdf(file)`: Reads the content of a PDF file.
+- `read_txt(file)`: Reads the content of a TXT file.
+- `read_md(file)`: Reads the content of a Markdown file.
+
+Logging:
+- Configured to log at the DEBUG level using `coloredlogs`.
+
+Example usage:
+    content = read_file(uploaded_file, 'pdf')
+"""
 import logging
 import re
 import coloredlogs
