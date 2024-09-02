@@ -24,12 +24,16 @@ Example usage:
     streamlit run app.py
     ```
 """
-import os
 import logging
 import streamlit as st
 import coloredlogs
+from dropbox.exceptions import AuthError
 from file_reader import read_file
-from dropbox_reader import list_dropbox_files_and_folders, download_dropbox_file
+from dropbox_reader import (
+    list_dropbox_files_and_folders,
+    download_dropbox_file,
+    DROPBOX_AUTHENTICATED
+)
 from langflow_api import run_flow, extract_scores
 from scoreboard import display_scoreboard
 
@@ -38,7 +42,7 @@ logger = logging.getLogger(__name__)
 coloredlogs.install(level='DEBUG', logger=logger)
 
 # ASCII art to be logged at the start of the app
-ascii_art = """
+ASCII_ART = """
 ██████╗ ██╗   ██╗██╗██╗     ██████╗     ██╗      ██████╗  ██████╗ 
 ██╔══██╗██║   ██║██║██║     ██╔══██╗    ██║     ██╔═══██╗██╔════╝ 
 ██████╔╝██║   ██║██║██║     ██║  ██║    ██║     ██║   ██║██║  ███╗
@@ -55,7 +59,7 @@ ascii_art = """
 """
 
 # Log the ASCII art
-logger.info(ascii_art)
+logger.info(ASCII_ART)
 
 # Set Streamlit page configuration
 st.set_page_config(layout="wide")
@@ -71,7 +75,12 @@ ALL_DOCUMENTS_PROCESSED = False
 st.image("static/ascii-art.png", width=200)
 
 # Option to choose file source
-file_source = st.radio("Choose file source", ("Local", "Dropbox"))
+file_source_options = ["Local"]
+if DROPBOX_AUTHENTICATED:
+    file_source_options.append("Dropbox")
+
+# Option to choose file source
+file_source = st.radio("Choose file source", file_source_options)
 
 # Create a placeholder for the progress bar
 progress_bar = st.progress(0)
@@ -98,8 +107,15 @@ if file_source == "Local":
                 scoreboard.append((uploaded_file.name, final_score))
 
                 # Display file name and page title as section headers with color coding
-                st.markdown(f"<h2 id='{uploaded_file.name}' style='color:#00ffff;'>File: {uploaded_file.name}</h2>", unsafe_allow_html=True)
-                st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<h2 id='{uploaded_file.name}' style='color:#00ffff;'>"
+                    f"File: {uploaded_file.name}</h2>",
+                    unsafe_allow_html=True
+                )
+                st.markdown(
+                    f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>",
+                    unsafe_allow_html=True
+                )
 
                 # Display Score Detail
                 st.markdown("<h3 style='color:#ff00ff;'>Score Detail</h3>", unsafe_allow_html=True)
@@ -111,43 +127,59 @@ if file_source == "Local":
         ALL_DOCUMENTS_PROCESSED = True
 
 elif file_source == "Dropbox":
-    FOLDER_PATH = '/rag++ hack night - build log submissions'  # Specific folder
-    file_map, dropbox_folders = list_dropbox_files_and_folders(FOLDER_PATH)
+    try:
+        FOLDER_PATH = '/rag++ hack night - build log submissions'  # Specific folder
+        file_map, dropbox_folders = list_dropbox_files_and_folders(FOLDER_PATH)
 
-    if file_map:
-        file_names = list(file_map.keys())
-        selected_files = st.multiselect("Choose files from Dropbox", file_names)
+        if file_map:
+            file_names = list(file_map.keys())
+            selected_files = st.multiselect("Choose files from Dropbox", file_names)
 
-        if selected_files:
-            total_files = len(selected_files)
-            for i, file_name in enumerate(selected_files):
-                file_path = file_map[file_name]
-                file_content = download_dropbox_file(file_path)
-                if file_content:
-                    file_type = file_name.split('.')[-1]
+            if selected_files:
+                total_files = len(selected_files)
+                for i, file_name in enumerate(selected_files):
+                    file_path = file_map[file_name]
+                    file_content = download_dropbox_file(file_path)
+                    if file_content:
+                        file_type = file_name.split('.')[-1]
 
-                    with st.spinner(f"Reading {file_name}..."):
-                        content = read_file(file_content, file_type)
-                        response = run_flow(content)
+                        with st.spinner(f"Reading {file_name}..."):
+                            content = read_file(file_content, file_type)
+                            response = run_flow(content)
 
-                    # Extract and display scores
-                    final_score, score_detail = extract_scores(response)
+                        # Extract and display scores
+                        final_score, score_detail = extract_scores(response)
 
-                    # Add to scoreboard
-                    scoreboard.append((file_name, final_score))
+                        # Add to scoreboard
+                        scoreboard.append((file_name, final_score))
 
-                    # Display file name and page title as section headers with color coding
-                    st.markdown(f"<h2 id='{file_name}' style='color:#00ffff;'>File: {file_name}</h2>", unsafe_allow_html=True)
-                    st.markdown(f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", unsafe_allow_html=True)
+                        # Display file name and page title as section headers with color coding
+                        st.markdown(
+                            f"<h2 id='{file_name}' style='color:#00ffff;'>File: {file_name}</h2>", 
+                            unsafe_allow_html=True
+                        )
+                        st.markdown(
+                            f"<h3 style='color:#ff00ff;'>Final Score: {final_score}</h3>", 
+                            unsafe_allow_html=True
+                        )
 
-                    # Display Score Detail
-                    st.markdown("<h3 style='color:#ff00ff;'>Score Detail</h3>", unsafe_allow_html=True)
-                    for key, value in score_detail.items():
-                        st.markdown(f"**{key}**: {value}")
+                        # Display Score Detail
+                        st.markdown(
+                            "<h3 style='color:#ff00ff;'>Score Detail</h3>", 
+                            unsafe_allow_html=True
+                        )
+                        for key, value in score_detail.items():
+                            st.markdown(f"**{key}**: {value}")
 
-                    # Update progress bar
-                    progress_bar.progress((i + 1) / total_files)
-            ALL_DOCUMENTS_PROCESSED = True
+                        # Update progress bar
+                        progress_bar.progress((i + 1) / total_files)
+                ALL_DOCUMENTS_PROCESSED = True
+    except AuthError as err:
+        st.error(
+            "Dropbox authentication error: The access token has expired. "
+            "Please refresh the access token."
+        )
+        st.stop()  # Stop further execution
 
 
 # Sort scoreboard by final score in descending order
