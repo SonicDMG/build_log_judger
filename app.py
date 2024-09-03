@@ -212,11 +212,11 @@ scoreboard.sort(key=lambda x: get_score(x[1]), reverse=True)
 
 # Display scoreboard
 with st.sidebar:
-    st.title("You will be judged!")
-
     if ALL_DOCUMENTS_PROCESSED:
+        st.title("You have been judged!")
         st.image("static/cyberpunk_judge_pointing.webp", width=500)
     else:
+        st.title("You will be judged!")
         st.image("static/cyberpunk_judge.webp", width=500)
     st.caption("Powered by DataStax Langflow and Streamlit.io")
 
