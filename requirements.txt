@@ -1,0 +1,10 @@
+streamlit==1.22.0
+python-docx==0.8.11
+pymupdf==1.21.1
+python-dotenv==1.0.0
+coloredlogs==15.0.1
+requests==2.31.0
+dropbox==11.36.0
+tenacity==8.2.2
+jsonschema==4.17.3
+demjson==2.2.4
